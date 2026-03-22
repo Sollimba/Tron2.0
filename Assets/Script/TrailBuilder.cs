@@ -5,9 +5,9 @@ using System.Collections.Generic;
 public class TrailBuilder : MonoBehaviour
 {
     public GameObject trailPrefab;
-    public float minDistance = 0.05f;     // очень маленькое расстояние для нового сегмента
+    public float minDistance = 0.05f;
     public float lifeTime = 5f;
-    public float colliderDelay = 0.3f;   // задержка включения коллайдера
+    public float colliderDelay = 0.4f;
 
     private GameObject currentSegment;
     private Vector3 lastPoint;
@@ -15,8 +15,11 @@ public class TrailBuilder : MonoBehaviour
 
     private List<GameObject> segments = new List<GameObject>();
 
+    public GameObject owner;
+
     void Start()
     {
+        owner = gameObject;
         lastDirection = transform.forward;
         lastPoint = transform.position;
         StartNewSegment();
@@ -27,14 +30,13 @@ public class TrailBuilder : MonoBehaviour
         Vector3 currentDirection = transform.forward;
         float distance = Vector3.Distance(transform.position, lastPoint);
 
-        // Создаём новый сегмент при повороте или при прохождении minDistance
+        // новый сегмент при повороте или расстоянии
         if (Vector3.Angle(lastDirection, currentDirection) > 5f || distance >= minDistance)
         {
             StartNewSegment();
             lastDirection = currentDirection;
         }
 
-        // Обновляем текущий сегмент
         if (currentSegment != null)
             UpdateSegment();
     }
@@ -44,16 +46,23 @@ public class TrailBuilder : MonoBehaviour
         currentSegment = Instantiate(trailPrefab, transform.position, Quaternion.identity);
         segments.Add(currentSegment);
 
-        // Обновляем lastPoint только после создания сегмента
+        // передаем owner
+        TrailSegment segmentScript = currentSegment.GetComponent<TrailSegment>();
+        if (segmentScript != null)
+        {
+            segmentScript.owner = owner;
+        }
+
+        // расчет позиции
         Vector3 direction = transform.position - lastPoint;
         Vector3 center = lastPoint + direction / 2f;
 
         currentSegment.transform.position = center;
         currentSegment.transform.rotation = Quaternion.LookRotation(direction);
 
-        // Масштаб сегмента по длине
+        // масштаб
         Vector3 scale = currentSegment.transform.localScale;
-        scale.z = Mathf.Max(direction.magnitude, 0.01f); // минимальная длина, чтобы не ломалось
+        scale.z = Mathf.Max(direction.magnitude, 0.01f) + 0.2f; // небольшой overlap
         currentSegment.transform.localScale = scale;
 
         // коллайдер
@@ -65,7 +74,8 @@ public class TrailBuilder : MonoBehaviour
         }
 
         Destroy(currentSegment, lifeTime);
-        lastPoint = transform.position; // обновляем lastPoint
+
+        lastPoint = transform.position;
     }
 
     IEnumerator EnableColliderDelayed(Collider col)
@@ -77,7 +87,6 @@ public class TrailBuilder : MonoBehaviour
 
     void UpdateSegment()
     {
-        // Поддерживаем текущий сегмент растянутым до текущей позиции
         Vector3 direction = transform.position - lastPoint;
         Vector3 center = lastPoint + direction / 2f;
 
@@ -85,7 +94,7 @@ public class TrailBuilder : MonoBehaviour
         currentSegment.transform.rotation = Quaternion.LookRotation(direction);
 
         Vector3 scale = currentSegment.transform.localScale;
-        scale.z = Mathf.Max(direction.magnitude, 0.01f);
+        scale.z = Mathf.Max(direction.magnitude, 0.01f) + 0.2f;
         currentSegment.transform.localScale = scale;
     }
 }
