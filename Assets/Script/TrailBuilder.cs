@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
+using Photon.Pun;
 public class TrailBuilder : MonoBehaviour
 {
     public GameObject trailPrefab;
@@ -21,6 +21,11 @@ public class TrailBuilder : MonoBehaviour
 
     void Start()
     {
+        if (!GetComponent<PhotonView>().IsMine)
+        {
+            enabled = false;
+            return;
+        }
         owner = gameObject;
         lastDirection = transform.forward;
         lastPoint = transform.position;

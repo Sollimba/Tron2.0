@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Photon.Pun;
 
-public class BikeController : MonoBehaviour
+public class BikeController : MonoBehaviourPun
 {
     public float speed = 10f;
     public float turnSpeed = 120f;
@@ -9,16 +10,22 @@ public class BikeController : MonoBehaviour
     private float turnInput = 0f;
     private Rigidbody rb;
 
-    private bool canMove = false; // 🔥 новое
+    private bool canMove = false;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+
+        // ❗ отключаем чужих игроков
+        if (!photonView.IsMine)
+        {
+            enabled = false;
+        }
     }
 
     void FixedUpdate()
     {
-        if (!canMove) return; // ❗ блокируем движение
+        if (!canMove) return;
 
         Vector3 forwardMove = transform.forward * speed * Time.fixedDeltaTime;
         rb.MovePosition(rb.position + forwardMove);
