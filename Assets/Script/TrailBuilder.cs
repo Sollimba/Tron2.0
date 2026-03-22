@@ -13,6 +13,8 @@ public class TrailBuilder : MonoBehaviour
     private Vector3 lastPoint;
     private Vector3 lastDirection;
 
+    private bool canBuild = false;
+
     private List<GameObject> segments = new List<GameObject>();
 
     public GameObject owner;
@@ -27,6 +29,7 @@ public class TrailBuilder : MonoBehaviour
 
     void Update()
     {
+        if (!canBuild) return;
         Vector3 currentDirection = transform.forward;
         float distance = Vector3.Distance(transform.position, lastPoint);
 
@@ -39,6 +42,10 @@ public class TrailBuilder : MonoBehaviour
 
         if (currentSegment != null)
             UpdateSegment();
+    }
+    public void EnableTrail()
+    {
+        canBuild = true;
     }
 
     void StartNewSegment()

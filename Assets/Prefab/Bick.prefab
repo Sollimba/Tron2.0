@@ -10,9 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 5883019763922667995}
   - component: {fileID: 6114553601494931539}
-  - component: {fileID: 4979520919167168205}
+  - component: {fileID: 6950122071352927305}
   - component: {fileID: 4346150762910647438}
   - component: {fileID: 1757424162904603056}
+  - component: {fileID: 257959738599783789}
   m_Layer: 0
   m_Name: Camera
   m_TagString: MainCamera
@@ -86,14 +87,19 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &4979520919167168205
-AudioListener:
+--- !u!114 &6950122071352927305
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 374442114957242076}
   m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6320da80b267c27439460d65581d57e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioListenerFix
+  isLocalPlayer: 1
 --- !u!114 &4346150762910647438
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -153,6 +159,14 @@ MonoBehaviour:
   target: {fileID: 4094754054063256102}
   offset: {x: 0, y: 7, z: -13}
   smoothSpeed: 5
+--- !u!81 &257959738599783789
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 374442114957242076}
+  m_Enabled: 1
 --- !u!1 &3987918034459712100
 GameObject:
   m_ObjectHideFlags: 0

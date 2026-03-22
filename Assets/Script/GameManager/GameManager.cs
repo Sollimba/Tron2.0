@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using TMPro;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
@@ -12,6 +13,9 @@ public class GameManager : MonoBehaviour
     private List<BikeHealth> players = new List<BikeHealth>();
     private bool gameEnded = false;
 
+    [Header("UI")]
+    public TextMeshProUGUI countdownText;
+
     void Awake()
     {
         Instance = this;
@@ -19,12 +23,52 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        // находим всех игроков на сцене
-        BikeHealth[] allPlayers = FindObjectsOfType<BikeHealth>();
+        var allPlayers = FindObjectsByType<BikeHealth>(FindObjectsSortMode.None);
 
         foreach (var p in allPlayers)
         {
             players.Add(p);
+        }
+
+        // 🔥 запускаем игру через отсчёт
+        StartCoroutine(StartCountdown());
+    }
+
+    IEnumerator StartCountdown()
+    {
+        countdownText.gameObject.SetActive(true);
+
+        countdownText.text = "3";
+        yield return new WaitForSeconds(1f);
+
+        countdownText.text = "2";
+        yield return new WaitForSeconds(1f);
+
+        countdownText.text = "1";
+        yield return new WaitForSeconds(1f);
+
+        countdownText.text = "GO!";
+
+        EnablePlayers();
+
+        yield return new WaitForSeconds(1f);
+
+        countdownText.gameObject.SetActive(false);
+    }
+
+    void EnablePlayers()
+    {
+        var bikes = FindObjectsByType<BikeController>(FindObjectsSortMode.None);
+        var trails = FindObjectsByType<TrailBuilder>(FindObjectsSortMode.None);
+
+        foreach (var bike in bikes)
+        {
+            bike.EnableMovement();
+        }
+
+        foreach (var trail in trails)
+        {
+            trail.EnableTrail();
         }
     }
 
@@ -56,9 +100,7 @@ public class GameManager : MonoBehaviour
                     winText.SetActive(true);
             }
             else
-            {
                 Debug.Log("DRAW");
-            }
 
             StartCoroutine(RestartGame());
         }
@@ -67,7 +109,6 @@ public class GameManager : MonoBehaviour
     IEnumerator RestartGame()
     {
         yield return new WaitForSeconds(3f);
-
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
