@@ -21,14 +21,25 @@ public class TrailBuilder : MonoBehaviour
 
     void Start()
     {
-        if (!GetComponent<PhotonView>().IsMine)
+        PhotonView pv = GetComponentInParent<PhotonView>();
+
+        if (pv == null)
+        {
+            Debug.LogError("PhotonView missing on parent of " + gameObject.name);
+            return;
+        }
+
+        if (!pv.IsMine)
         {
             enabled = false;
             return;
         }
-        owner = gameObject;
+
+        owner = pv.gameObject; // 🔥 ВАЖНО
+
         lastDirection = transform.forward;
         lastPoint = transform.position;
+
         StartNewSegment();
     }
 

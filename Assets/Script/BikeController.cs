@@ -16,15 +16,33 @@ public class BikeController : MonoBehaviourPun
     {
         rb = GetComponent<Rigidbody>();
 
-        // ❗ отключаем чужих игроков
+        // ❌ полностью отключаем чужие объекты
         if (!photonView.IsMine)
         {
             enabled = false;
+            return;
         }
+    }
+
+    void Update()
+    {
+        if (!photonView.IsMine) return;
+
+        // 👉 ЧИТАЕМ КЛАВИАТУРУ НАПРЯМУЮ
+        float turn = 0f;
+
+        if (Keyboard.current.aKey.isPressed)
+            turn = -1f;
+
+        if (Keyboard.current.dKey.isPressed)
+            turn = 1f;
+
+        turnInput = turn;
     }
 
     void FixedUpdate()
     {
+        if (!photonView.IsMine) return;
         if (!canMove) return;
 
         Vector3 forwardMove = transform.forward * speed * Time.fixedDeltaTime;
@@ -36,12 +54,7 @@ public class BikeController : MonoBehaviourPun
 
     public void EnableMovement()
     {
+        if (!photonView.IsMine) return;
         canMove = true;
-    }
-
-    public void OnMove(InputValue value)
-    {
-        Vector2 input = value.Get<Vector2>();
-        turnInput = input.x;
     }
 }

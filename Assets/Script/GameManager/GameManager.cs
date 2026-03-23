@@ -3,15 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using TMPro;
-using UnityEngine.UI;
+using Photon.Pun;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourPunCallbacks
 {
     public static GameManager Instance;
+
     public GameObject winText;
 
     private List<BikeHealth> players = new List<BikeHealth>();
     private bool gameEnded = false;
+    private bool gameStarted = false;
 
     [Header("UI")]
     public TextMeshProUGUI countdownText;
@@ -23,6 +25,11 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        if (countdownText == null)
+        {
+            countdownText = FindFirstObjectByType<TextMeshProUGUI>();
+        }
+
         var allPlayers = FindObjectsByType<BikeHealth>(FindObjectsSortMode.None);
 
         foreach (var p in allPlayers)
@@ -30,14 +37,42 @@ public class GameManager : MonoBehaviour
             players.Add(p);
         }
 
-        // 🔥 запускаем игру через отсчёт
+        StartCoroutine(WaitForPlayers());
+    }
+
+    IEnumerator WaitForPlayers()
+    {
+        if (countdownText == null)
+        {
+            Debug.LogError("CountdownText NOT assigned!");
+            yield break;
+        }
+
+        countdownText.gameObject.SetActive(true);
+
+        while (PhotonNetwork.CurrentRoom == null || PhotonNetwork.CurrentRoom.PlayerCount < 2)
+        {
+            countdownText.text = "Waiting for players...";
+            yield return null;
+        }
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC("StartCountdownRPC", RpcTarget.All);
+        }
+    }
+
+    [PunRPC]
+    void StartCountdownRPC()
+    {
+        if (gameStarted) return;
+
+        gameStarted = true;
         StartCoroutine(StartCountdown());
     }
 
     IEnumerator StartCountdown()
     {
-        countdownText.gameObject.SetActive(true);
-
         countdownText.text = "3";
         yield return new WaitForSeconds(1f);
 
@@ -100,7 +135,9 @@ public class GameManager : MonoBehaviour
                     winText.SetActive(true);
             }
             else
+            {
                 Debug.Log("DRAW");
+            }
 
             StartCoroutine(RestartGame());
         }
@@ -109,6 +146,10 @@ public class GameManager : MonoBehaviour
     IEnumerator RestartGame()
     {
         yield return new WaitForSeconds(3f);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.LoadLevel(SceneManager.GetActiveScene().buildIndex);
+        }
     }
 }

@@ -6,6 +6,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 {
     public GameObject playerPrefab;
 
+    public Transform[] spawnPoints; // 🔥 точки спавна
+
     void Start()
     {
         PhotonNetwork.ConnectUsingSettings();
@@ -23,12 +25,25 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         Debug.Log("Joined Room");
 
         SpawnPlayer();
+        GetComponent<PlayerSetup>().IsLocalPlayer();
     }
 
     void SpawnPlayer()
     {
-        Vector3 spawnPos = new Vector3(Random.Range(-5, 5), 0, Random.Range(-5, 5));
+        int playerIndex = PhotonNetwork.LocalPlayer.ActorNumber - 1;
 
-        PhotonNetwork.Instantiate(playerPrefab.name, spawnPos, Quaternion.identity);
+        // защита от выхода за массив
+        if (playerIndex >= spawnPoints.Length)
+        {
+            playerIndex = Random.Range(0, spawnPoints.Length);
+        }
+
+        Transform spawnPoint = spawnPoints[playerIndex];
+
+        PhotonNetwork.Instantiate(
+            playerPrefab.name,
+            spawnPoint.position,
+            spawnPoint.rotation
+        );
     }
 }

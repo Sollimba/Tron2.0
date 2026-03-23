@@ -11,9 +11,22 @@ public class CameraFollow : MonoBehaviourPun
 
     void Start()
     {
+        if (cameraTransform == null)
+            cameraTransform = Camera.main.transform;
+
+        AudioListener listener = cameraTransform.GetComponent<AudioListener>();
+
         if (!photonView.IsMine)
         {
             cameraTransform.gameObject.SetActive(false);
+
+            if (listener != null)
+                listener.enabled = false;
+        }
+        else
+        {
+            if (listener != null)
+                listener.enabled = true;
         }
     }
 
