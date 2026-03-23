@@ -25,25 +25,23 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         Debug.Log("Joined Room");
 
         SpawnPlayer();
-        GetComponent<PlayerSetup>().IsLocalPlayer();
     }
 
     void SpawnPlayer()
     {
         int playerIndex = PhotonNetwork.LocalPlayer.ActorNumber - 1;
 
-        // защита от выхода за массив
         if (playerIndex >= spawnPoints.Length)
-        {
             playerIndex = Random.Range(0, spawnPoints.Length);
-        }
 
         Transform spawnPoint = spawnPoints[playerIndex];
 
-        PhotonNetwork.Instantiate(
+        GameObject player = PhotonNetwork.Instantiate(
             playerPrefab.name,
             spawnPoint.position,
             spawnPoint.rotation
         );
+
+        Debug.Log("I spawned: " + player.name + " | IsMine: " + player.GetComponent<PhotonView>().IsMine);
     }
 }

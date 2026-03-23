@@ -1,12 +1,27 @@
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerSetup : MonoBehaviour
+public class PlayerSetup : MonoBehaviourPun
 {
     public BikeController bikeController;
+    public GameObject cameraPrefab;
 
-
-    public void IsLocalPlayer()
+    void Start()
     {
-        bikeController.enabled = true;
+        if (photonView.IsMine)
+        {
+            bikeController.enabled = true;
+
+            GameObject cam = Instantiate(cameraPrefab);
+
+            CameraFollow follow = cam.GetComponent<CameraFollow>();
+
+            // 🔥 ВОТ ЭТА СТРОКА КРИТИЧЕСКАЯ
+            follow.target = transform;
+        }
+        else
+        {
+            bikeController.enabled = false;
+        }
     }
 }

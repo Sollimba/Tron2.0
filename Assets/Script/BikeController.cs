@@ -16,12 +16,7 @@ public class BikeController : MonoBehaviourPun
     {
         rb = GetComponent<Rigidbody>();
 
-        // ❌ полностью отключаем чужие объекты
-        if (!photonView.IsMine)
-        {
-            enabled = false;
-            return;
-        }
+        Debug.Log(gameObject.name + " IsMine = " + photonView.IsMine);
     }
 
     void Update()
