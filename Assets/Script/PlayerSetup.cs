@@ -4,7 +4,7 @@ using Photon.Pun;
 public class PlayerSetup : MonoBehaviourPun
 {
     public BikeController bikeController;
-    public GameObject cameraPrefab;
+    public Camera playerCamera;
 
     void Start()
     {
@@ -12,16 +12,20 @@ public class PlayerSetup : MonoBehaviourPun
         {
             bikeController.enabled = true;
 
-            GameObject cam = Instantiate(cameraPrefab);
+            // ✅ включаем камеру только у себя
+            playerCamera.gameObject.SetActive(true);
 
-            CameraFollow follow = cam.GetComponent<CameraFollow>();
-
-            // 🔥 ВОТ ЭТА СТРОКА КРИТИЧЕСКАЯ
-            follow.target = transform;
+            // ✅ включаем звук
+            var listener = playerCamera.GetComponent<AudioListener>();
+            if (listener != null)
+                listener.enabled = true;
         }
         else
         {
             bikeController.enabled = false;
+
+            // ❌ отключаем чужую камеру
+            playerCamera.gameObject.SetActive(false);
         }
     }
 }

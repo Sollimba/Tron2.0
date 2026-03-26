@@ -114,7 +114,9 @@ public class GameManager : MonoBehaviourPunCallbacks
         int aliveCount = 0;
         BikeHealth lastAlive = null;
 
-        foreach (var p in players)
+        var allPlayers = FindObjectsByType<BikeHealth>(FindObjectsSortMode.None);
+
+        foreach (var p in allPlayers)
         {
             if (p != null && p.IsAlive())
             {

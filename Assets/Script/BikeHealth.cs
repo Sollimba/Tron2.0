@@ -1,6 +1,7 @@
 using UnityEngine;
+using Photon.Pun;
 
-public class BikeHealth : MonoBehaviour
+public class BikeHealth : MonoBehaviourPun
 {
     private bool isDead = false;
 
@@ -11,6 +12,7 @@ public class BikeHealth : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!photonView.IsMine) return;
         if (isDead) return;
 
         if (other.CompareTag("Trail"))
@@ -21,13 +23,22 @@ public class BikeHealth : MonoBehaviour
 
     void Die()
     {
+        if (!photonView.IsMine) return; // ❗ КРИТИЧЕСКОЕ УСЛОВИЕ
+
+        photonView.RPC("DieRPC", RpcTarget.All);
+    }
+
+    [PunRPC]
+    void DieRPC()
+    {
+        if (isDead) return;
+
         isDead = true;
 
-        Debug.Log(gameObject.name + " DIED");
-
-        // уведомляем GameManager
-        GameManager.Instance.OnPlayerDied(this);
+        Debug.Log("DIED ON: " + gameObject.name);
 
         gameObject.SetActive(false);
+
+        GameManager.Instance.OnPlayerDied(this);
     }
 }
