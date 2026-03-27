@@ -1,6 +1,7 @@
 using UnityEngine;
+using Photon.Pun;
 
-public class TrailSegment : MonoBehaviour
+public class TrailSegment : MonoBehaviourPun
 {
-    public GameObject owner;
+    public int ownerViewID; // чей трейл
 }

@@ -5,35 +5,24 @@ using Photon.Realtime;
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
     public GameObject playerPrefab;
-
-    public Transform[] spawnPoints; // 🔥 точки спавна
+    public Transform[] spawnPoints;
 
     void Start()
     {
         if (!PhotonNetwork.IsConnected)
-        {
             PhotonNetwork.ConnectUsingSettings();
-        }
     }
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("Connected to Photon");
-
         PhotonNetwork.JoinOrCreateRoom("Room1", new RoomOptions { MaxPlayers = 5 }, TypedLobby.Default);
     }
 
-    public override void OnJoinedRoom()
-    {
-        Debug.Log("Joined Room");
+    public override void OnJoinedRoom() => SpawnPlayer();
 
-        SpawnPlayer();
-    }
-
-    void SpawnPlayer()
+    public void SpawnPlayer()
     {
         int playerIndex = PhotonNetwork.LocalPlayer.ActorNumber - 1;
-
         if (playerIndex >= spawnPoints.Length)
             playerIndex = Random.Range(0, spawnPoints.Length);
 
@@ -45,6 +34,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             spawnPoint.rotation
         );
 
-        Debug.Log("I spawned: " + player.name + " | IsMine: " + player.GetComponent<PhotonView>().IsMine);
+        Debug.Log("Spawned: " + player.name + " | IsMine: " + player.GetComponent<PhotonView>().IsMine);
+
     }
+
 }

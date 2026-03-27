@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5083301518212546237}
   - component: {fileID: 4255416223885458780}
   - component: {fileID: 4154232748863531889}
-  - component: {fileID: 4694586550175140345}
+  - component: {fileID: 6594053174648191096}
   m_Layer: 0
   m_Name: TrailSegment
   m_TagString: Trail
@@ -126,8 +126,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46cb64caed13dbf459851035ea0f6288, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrailSegment
-  owner: {fileID: 0}
---- !u!114 &4694586550175140345
+  ownerViewID: 0
+--- !u!114 &6594053174648191096
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

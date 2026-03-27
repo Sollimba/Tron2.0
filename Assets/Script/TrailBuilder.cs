@@ -6,15 +6,14 @@ using Photon.Pun;
 public class TrailBuilder : MonoBehaviourPun
 {
     public string trailPrefabName = "TrailSegment";
-
-    public float minDistance = 0.05f;
-    public float lifeTime = 5f;
+    public float minDistance = 0.1f;
     public float colliderDelay = 0.4f;
+    public int maxSegments = 200;
 
+    private List<GameObject> segments = new List<GameObject>();
     private GameObject currentSegment;
     private Vector3 lastPoint;
     private Vector3 lastDirection;
-
     private bool canBuild = false;
 
     void Start()
@@ -25,8 +24,8 @@ public class TrailBuilder : MonoBehaviourPun
             return;
         }
 
-        lastDirection = transform.forward;
         lastPoint = transform.position;
+        lastDirection = transform.forward;
 
         StartNewSegment();
     }
@@ -48,34 +47,23 @@ public class TrailBuilder : MonoBehaviourPun
             UpdateSegment();
     }
 
-    public void EnableTrail()
-    {
-        if (!photonView.IsMine) return;
-        canBuild = true;
-    }
+    public void EnableTrail() => canBuild = true;
 
     void StartNewSegment()
     {
-        currentSegment = PhotonNetwork.Instantiate(
-            trailPrefabName,
-            transform.position,
-            Quaternion.identity
-        );
+        GameObject prefab = Resources.Load<GameObject>(trailPrefabName);
+        if (prefab == null) return;
 
-        // назначаем владельца
-        TrailSegment segment = currentSegment.GetComponent<TrailSegment>();
-        if (segment != null)
-            segment.owner = gameObject;
+        currentSegment = PhotonNetwork.Instantiate(trailPrefabName, transform.position, Quaternion.identity);
+        segments.Add(currentSegment);
 
-        Vector3 direction = transform.position - lastPoint;
-        Vector3 center = lastPoint + direction / 2f;
+        if (segments.Count > maxSegments)
+        {
+            PhotonNetwork.Destroy(segments[0]);
+            segments.RemoveAt(0);
+        }
 
-        currentSegment.transform.position = center;
-        currentSegment.transform.rotation = Quaternion.LookRotation(direction);
-
-        Vector3 scale = currentSegment.transform.localScale;
-        scale.z = Mathf.Max(direction.magnitude, 0.01f) + 0.2f;
-        currentSegment.transform.localScale = scale;
+        UpdateSegment();
 
         Collider col = currentSegment.GetComponent<Collider>();
         if (col != null)
@@ -84,29 +72,7 @@ public class TrailBuilder : MonoBehaviourPun
             StartCoroutine(EnableColliderDelayed(col));
         }
 
-        // 🔥 удаление через Photon
-        StartCoroutine(DestroyAfterTime(currentSegment));
-
         lastPoint = transform.position;
-    }
-
-    IEnumerator DestroyAfterTime(GameObject obj)
-    {
-        yield return new WaitForSeconds(lifeTime);
-        PhotonView pv = obj.GetComponent<PhotonView>();
-
-        if (pv != null && pv.IsMine)
-        {
-            PhotonNetwork.Destroy(gameObject);
-        }
-    }
-
-    IEnumerator EnableColliderDelayed(Collider col)
-    {
-        yield return new WaitForSeconds(colliderDelay);
-
-        if (col != null)
-            col.enabled = true;
     }
 
     void UpdateSegment()
@@ -118,7 +84,26 @@ public class TrailBuilder : MonoBehaviourPun
         currentSegment.transform.rotation = Quaternion.LookRotation(direction);
 
         Vector3 scale = currentSegment.transform.localScale;
-        scale.z = Mathf.Max(direction.magnitude, 0.01f) + 0.2f;
+        scale.z = Mathf.Max(direction.magnitude, 0.01f);
         currentSegment.transform.localScale = scale;
+    }
+
+    IEnumerator EnableColliderDelayed(Collider col)
+    {
+        yield return new WaitForSeconds(colliderDelay);
+        if (col != null)
+            col.enabled = true;
+    }
+
+    // 🔹 Очистка всех сегментов игрока
+    public void ClearMyTrails()
+    {
+        foreach (var seg in segments)
+        {
+            if (seg != null)
+                PhotonNetwork.Destroy(seg);
+        }
+        segments.Clear();
+        currentSegment = null;
     }
 }

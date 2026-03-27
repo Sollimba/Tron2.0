@@ -5,10 +5,7 @@ public class BikeHealth : MonoBehaviourPun
 {
     private bool isDead = false;
 
-    public bool IsAlive()
-    {
-        return !isDead;
-    }
+    public bool IsAlive() => !isDead;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -23,7 +20,7 @@ public class BikeHealth : MonoBehaviourPun
 
     void Die()
     {
-        if (!photonView.IsMine) return; // ❗ КРИТИЧЕСКОЕ УСЛОВИЕ
+        if (!photonView.IsMine) return;
 
         photonView.RPC("DieRPC", RpcTarget.All);
     }
@@ -32,11 +29,14 @@ public class BikeHealth : MonoBehaviourPun
     void DieRPC()
     {
         if (isDead) return;
-
         isDead = true;
 
-        Debug.Log("DIED ON: " + gameObject.name);
+        if (photonView.IsMine)
+        {
+            Debug.Log("YOU LOSE");
+        }
 
+        // Временное скрытие объекта, фактически он будет удален GameManager'ом
         gameObject.SetActive(false);
 
         GameManager.Instance.OnPlayerDied(this);

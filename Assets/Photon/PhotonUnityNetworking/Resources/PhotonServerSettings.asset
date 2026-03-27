@@ -41,6 +41,13 @@ MonoBehaviour:
   - RespawnSpaceship
   - StartCountdownRPC
   - DieRPC
+  - EndRoundRPC
+  - RestartRoundRPC
+  - SpawnTrailSegment
+  - RequestDeath
+  - ShowDrawRPC
+  - ShowWinnerRPC
+  - ClearTrailsRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

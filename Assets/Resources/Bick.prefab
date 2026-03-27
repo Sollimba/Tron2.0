@@ -459,8 +459,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TrailBuilder
   trailPrefabName: TrailSegment
   minDistance: 1
-  lifeTime: 3
-  colliderDelay: 0.1
+  colliderDelay: 0.4
+  maxSegments: 200
 --- !u!96 &7579873601699770589
 TrailRenderer:
   serializedVersion: 4
