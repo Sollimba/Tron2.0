@@ -48,6 +48,12 @@ MonoBehaviour:
   - ShowDrawRPC
   - ShowWinnerRPC
   - ClearTrailsRPC
+  - DestroyAllPlayersRPC
+  - DestroyAllTrailsRPC
+  - ResetUIRPC
+  - DestroyAllSpectatorsRPC
+  - PlayerReadyRPC
+  - SpawnPlayersRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

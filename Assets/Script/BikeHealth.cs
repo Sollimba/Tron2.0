@@ -28,16 +28,20 @@ public class BikeHealth : MonoBehaviourPun
     [PunRPC]
     void DieRPC()
     {
-        if (isDead) return;
-        isDead = true;
-
         if (photonView.IsMine)
         {
             Debug.Log("YOU LOSE");
-        }
 
-        // Временное скрытие объекта, фактически он будет удален GameManager'ом
-        gameObject.SetActive(false);
+            GameManager.Instance.ShowLoseScreen();
+
+            // ❗ ВАЖНО: НЕ удаляем объект сразу
+            GetComponent<BikeController>().enabled = false;
+            GetComponent<Collider>().enabled = false;
+
+            // можно спрятать модель
+            transform.GetChild(0).gameObject.SetActive(false);
+            isDead = true;
+        }
 
         GameManager.Instance.OnPlayerDied(this);
     }

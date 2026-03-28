@@ -10,15 +10,10 @@ public class PlayerSetup : MonoBehaviourPun
     {
         if (photonView.IsMine)
         {
-            bikeController.enabled = true;
-
-            // ✅ включаем камеру только у себя
             playerCamera.gameObject.SetActive(true);
 
-            // ✅ включаем звук
-            var listener = playerCamera.GetComponent<AudioListener>();
-            if (listener != null)
-                listener.enabled = true;
+            if (playerCamera.GetComponent<AudioListener>() == null)
+                playerCamera.gameObject.AddComponent<AudioListener>();
         }
         else
         {

@@ -22,6 +22,15 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public void SpawnPlayer()
     {
+        // 💥 если уже есть наш игрок — не спавним
+        var existing = FindObjectsByType<BikeController>(FindObjectsSortMode.None);
+
+        foreach (var b in existing)
+        {
+            if (b.GetComponent<PhotonView>().IsMine)
+                return;
+        }
+
         int playerIndex = PhotonNetwork.LocalPlayer.ActorNumber - 1;
         if (playerIndex >= spawnPoints.Length)
             playerIndex = Random.Range(0, spawnPoints.Length);
@@ -33,6 +42,9 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             spawnPoint.position,
             spawnPoint.rotation
         );
+
+        PhotonView gm = FindFirstObjectByType<GameManager>().photonView;
+        gm.RPC("PlayerReadyRPC", RpcTarget.MasterClient);
 
         Debug.Log("Spawned: " + player.name + " | IsMine: " + player.GetComponent<PhotonView>().IsMine);
 

@@ -49,6 +49,11 @@ public class TrailBuilder : MonoBehaviourPun
 
     public void EnableTrail() => canBuild = true;
 
+    void OnDisable()
+    {
+        ClearMyTrails();
+    }
+
     void StartNewSegment()
     {
         GameObject prefab = Resources.Load<GameObject>(trailPrefabName);
