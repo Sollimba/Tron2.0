@@ -32,22 +32,16 @@ public class BikeHealth : MonoBehaviourPun
     {
         isDead = true;
 
-        // ❗ отключаем управление
         GetComponent<BikeController>().enabled = false;
 
-        // ❗ НЕ отключаем collider (иначе падает!)
         // GetComponent<Collider>().enabled = false;
-
-        // скрываем модель
         transform.GetChild(0).gameObject.SetActive(false);
 
-        // 🔥 сообщаем GameManager
         if (PhotonNetwork.IsMasterClient)
         {
             GameManager.Instance.OnPlayerDied(this);
         }
 
-        // 🔥 локально становимся spectator
         if (photonView.IsMine)
         {
             GameManager.Instance.SpawnSpectator(transform.position);

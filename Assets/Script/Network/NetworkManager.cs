@@ -38,7 +38,6 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public void SpawnPlayer()
     {
-        // удаляем старую проверку IsMine
         int playerIndex = PhotonNetwork.LocalPlayer.ActorNumber - 1;
         if (playerIndex >= spawnPoints.Length)
             playerIndex = Random.Range(0, spawnPoints.Length);
@@ -53,7 +52,6 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
         Debug.Log("Spawned: " + player.name + " | IsMine: " + player.GetComponent<PhotonView>().IsMine);
 
-        // ❗ сразу отправляем готовность
         StartCoroutine(SendReadyDelayed());
     }
 

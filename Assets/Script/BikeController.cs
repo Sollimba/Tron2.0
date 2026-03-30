@@ -23,7 +23,6 @@ public class BikeController : MonoBehaviourPun
     {
         if (!photonView.IsMine) return;
 
-        // 👉 ЧИТАЕМ КЛАВИАТУРУ НАПРЯМУЮ
         float turn = 0f;
 
         if (Keyboard.current.aKey.isPressed)

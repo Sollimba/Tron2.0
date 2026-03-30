@@ -19,7 +19,6 @@ public class PlayerSetup : MonoBehaviourPun
         {
             bikeController.enabled = false;
 
-            // ❌ отключаем чужую камеру
             playerCamera.gameObject.SetActive(false);
         }
     }

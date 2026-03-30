@@ -100,7 +100,6 @@ public class TrailBuilder : MonoBehaviourPun
             col.enabled = true;
     }
 
-    // 🔹 Очистка всех сегментов игрока
     public void ClearMyTrails()
     {
         foreach (var seg in segments)

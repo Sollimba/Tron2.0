@@ -3,5 +3,5 @@ using Photon.Pun;
 
 public class TrailSegment : MonoBehaviourPun
 {
-    public int ownerViewID; // чей трейл
+    public int ownerViewID;
 }

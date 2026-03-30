@@ -30,7 +30,6 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        // 👉 просто показываем текст ожидания
         if (countdownText != null)
         {
             countdownText.gameObject.SetActive(true);
@@ -62,8 +61,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         readyPlayers.Add(actorNumber);
 
-        // ждём минимум 2 игроков
-        if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
+        if (PhotonNetwork.CurrentRoom.PlayerCount < 3)
             return;
 
         if (readyPlayers.Count >= PhotonNetwork.CurrentRoom.PlayerCount)
