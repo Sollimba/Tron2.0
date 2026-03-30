@@ -197,7 +197,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
         if (!PhotonNetwork.IsMasterClient) yield break;
 
-        currentState = GameState.Waiting;
+        photonView.RPC("SetStateRPC", RpcTarget.All, (int)GameState.Waiting);
 
         photonView.RPC("ResetUIRPC", RpcTarget.All);
         photonView.RPC("DestroyAllSpectatorsRPC", RpcTarget.All);
@@ -253,6 +253,12 @@ public class GameManager : MonoBehaviourPunCallbacks
             if (pv != null && pv.IsMine)
                 PhotonNetwork.Destroy(t);
         }
+    }
+
+    [PunRPC]
+    void SetStateRPC(int state)
+    {
+        currentState = (GameState)state;
     }
 
     [PunRPC]

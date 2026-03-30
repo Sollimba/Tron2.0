@@ -28,32 +28,28 @@ MonoBehaviour:
     AuthMode: 0
     EnableLobbyStatistics: 0
     NetworkLogging: 1
-  DevRegion: ru
+  DevRegion: eu
   PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
   StartInOfflineMode: 0
   RpcList:
   - ClickRpc
+  - DestroyAllPlayersRPC
+  - DestroyAllSpectatorsRPC
+  - DestroyAllTrailsRPC
   - DestroyRpc
   - DestroySpaceship
-  - Fire
-  - RespawnSpaceship
-  - StartCountdownRPC
   - DieRPC
-  - EndRoundRPC
-  - RestartRoundRPC
-  - SpawnTrailSegment
-  - RequestDeath
+  - Fire
+  - PlayerReadyRPC
+  - ResetUIRPC
+  - RespawnSpaceship
   - ShowDrawRPC
   - ShowWinnerRPC
-  - ClearTrailsRPC
-  - DestroyAllPlayersRPC
-  - DestroyAllTrailsRPC
-  - ResetUIRPC
-  - DestroyAllSpectatorsRPC
-  - PlayerReadyRPC
   - SpawnPlayersRPC
+  - StartCountdownRPC
+  - SetStateRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
