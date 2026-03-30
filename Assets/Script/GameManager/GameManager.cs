@@ -1,7 +1,8 @@
-using UnityEngine;
-using System.Collections;
 using Photon.Pun;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
+using UnityEngine;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
@@ -11,60 +12,33 @@ public class GameManager : MonoBehaviourPunCallbacks
     public GameObject drawText;
     public TextMeshProUGUI countdownText;
 
-    private bool gameEnded = false;
-    private bool gameStarted = false;
-
-    void Awake() => Instance = this;
-
     public GameObject spectatorPrefab;
     public Transform spectatorSpawnPoint;
 
-    private int playersReady = 0;
+    private HashSet<int> readyPlayers = new HashSet<int>();
 
     enum GameState
     {
         Waiting,
         Starting,
-        Playing,
-        Ending
+        Playing
     }
 
     private GameState currentState = GameState.Waiting;
 
+    void Awake() => Instance = this;
+
     void Start()
     {
-        if (countdownText == null)
-            countdownText = FindFirstObjectByType<TextMeshProUGUI>();
-
-        StartCoroutine(WaitForPlayers());
-    }
-
-    IEnumerator WaitForSceneClean()
-    {
-        while (true)
+        // 👉 просто показываем текст ожидания
+        if (countdownText != null)
         {
-            bool hasPlayers = FindObjectsByType<BikeController>(FindObjectsSortMode.None).Length > 0;
-            bool hasTrails = GameObject.FindGameObjectsWithTag("Trail").Length > 0;
-
-            if (!hasPlayers && !hasTrails)
-                break;
-
-            yield return null;
-        }
-    }
-
-    IEnumerator WaitForPlayers()
-    {
-        countdownText.gameObject.SetActive(true);
-
-        while (PhotonNetwork.CurrentRoom == null || PhotonNetwork.CurrentRoom.PlayerCount < 2)
-        {
+            countdownText.gameObject.SetActive(true);
             countdownText.text = "Waiting for players...";
-            yield return null;
         }
-
-        countdownText.text = "Players connected...";
     }
+
+    // ===================== SPECTATOR =====================
 
     public void SpawnSpectator(Vector3 deathPosition)
     {
@@ -79,17 +53,56 @@ public class GameManager : MonoBehaviourPunCallbacks
             cam.gameObject.SetActive(true);
     }
 
+    // ===================== START GAME =====================
+
+    [PunRPC]
+    void PlayerReadyRPC(int actorNumber)
+    {
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        readyPlayers.Add(actorNumber);
+
+        // ждём минимум 2 игроков
+        if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
+            return;
+
+        if (readyPlayers.Count >= PhotonNetwork.CurrentRoom.PlayerCount)
+        {
+            readyPlayers.Clear();
+
+            photonView.RPC("StartCountdownRPC", RpcTarget.All);
+        }
+    }
+
+    [PunRPC]
+    void StartCountdownRPC()
+    {
+        if (currentState != GameState.Waiting) return;
+
+        currentState = GameState.Starting;
+        StartCoroutine(StartCountdown());
+    }
+
     IEnumerator StartCountdown()
     {
-        if (winText != null) winText.SetActive(false);
-        if (drawText != null) drawText.SetActive(false);
+        winText?.SetActive(false);
+        drawText?.SetActive(false);
 
-        countdownText.text = "3"; yield return new WaitForSeconds(1f);
-        countdownText.text = "2"; yield return new WaitForSeconds(1f);
-        countdownText.text = "1"; yield return new WaitForSeconds(1f);
+        countdownText.gameObject.SetActive(true);
+
+        countdownText.text = "3";
+        yield return new WaitForSeconds(1f);
+
+        countdownText.text = "2";
+        yield return new WaitForSeconds(1f);
+
+        countdownText.text = "1";
+        yield return new WaitForSeconds(1f);
+
         countdownText.text = "GO!";
 
         EnablePlayers();
+
         yield return new WaitForSeconds(1f);
         countdownText.gameObject.SetActive(false);
     }
@@ -108,41 +121,75 @@ public class GameManager : MonoBehaviourPunCallbacks
             trail.EnableTrail();
     }
 
+    // ===================== GAME LOGIC =====================
+
     public void OnPlayerDied(BikeHealth deadPlayer)
     {
-
         if (!PhotonNetwork.IsMasterClient) return;
         if (currentState != GameState.Playing) return;
 
-        currentState = GameState.Ending;
+        var players = FindObjectsByType<BikeHealth>(FindObjectsSortMode.None);
 
-        int aliveCount = 0;
-        BikeHealth lastAlive = null;
+        List<BikeHealth> alive = new List<BikeHealth>();
 
-        var allPlayers = FindObjectsByType<BikeHealth>(FindObjectsSortMode.None);
-        foreach (var p in allPlayers)
+        foreach (var p in players)
         {
             if (p != null && p.IsAlive())
-            {
-                aliveCount++;
-                lastAlive = p;
-            }
+                alive.Add(p);
         }
 
-        if (aliveCount == 0)
+        // все умерли
+        if (alive.Count == 0)
         {
-            gameEnded = true;
             photonView.RPC("ShowDrawRPC", RpcTarget.All);
             StartCoroutine(RestartRound());
+            return;
         }
-        else if (aliveCount == 1)
+
+        // один победитель
+        if (alive.Count == 1)
         {
-            gameEnded = true;
-            int winnerID = lastAlive.photonView.ViewID;
-            photonView.RPC("ShowWinnerRPC", RpcTarget.All, winnerID, deadPlayer.photonView.ViewID);
+            int winnerID = alive[0].photonView.ViewID;
+
+            photonView.RPC("ShowWinnerRPC", RpcTarget.All, winnerID);
             StartCoroutine(RestartRound());
         }
     }
+
+    // ===================== UI =====================
+
+    [PunRPC]
+    void ShowWinnerRPC(int winnerID)
+    {
+        PhotonView winnerPV = PhotonView.Find(winnerID);
+
+        if (winnerPV != null && winnerPV.IsMine)
+        {
+            winText.SetActive(true);
+            winText.GetComponent<TextMeshProUGUI>().text = "YOU WIN";
+        }
+        else
+        {
+            drawText.SetActive(true);
+            drawText.GetComponent<TextMeshProUGUI>().text = "YOU DRAW";
+        }
+    }
+
+    [PunRPC]
+    void ShowDrawRPC()
+    {
+        drawText?.SetActive(true);
+        winText?.SetActive(false);
+    }
+
+    [PunRPC]
+    void ResetUIRPC()
+    {
+        winText?.SetActive(false);
+        drawText?.SetActive(false);
+    }
+
+    // ===================== RESTART =====================
 
     IEnumerator RestartRound()
     {
@@ -157,113 +204,23 @@ public class GameManager : MonoBehaviourPunCallbacks
         photonView.RPC("DestroyAllTrailsRPC", RpcTarget.All);
         photonView.RPC("DestroyAllPlayersRPC", RpcTarget.All);
 
-        // 💥 ЖДЁМ ПОЛНУЮ ОЧИСТКУ
-        yield return StartCoroutine(WaitForSceneClean());
+        yield return new WaitForSeconds(1f);
 
-        // 💥 небольшой буфер
-        yield return new WaitForSeconds(0.3f);
-
-        playersReady = 0;
-        gameStarted = false;
+        readyPlayers.Clear();
 
         photonView.RPC("SpawnPlayersRPC", RpcTarget.All);
     }
 
-    public void ShowLoseScreen()
-    {
-        if (drawText != null)
-            drawText.SetActive(true);
-    }
-
-    [PunRPC]
-    void PlayerReadyRPC()
-    {
-        playersReady++;
-
-        if (PhotonNetwork.IsMasterClient)
-        {
-            // ❗ ждём пока реально есть игроки
-            if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
-                return;
-
-            if (playersReady >= PhotonNetwork.CurrentRoom.PlayerCount)
-            {
-                playersReady = 0;
-
-                photonView.RPC("StartCountdownRPC", RpcTarget.All);
-            }
-        }
-    }
+    // ===================== CLEAN =====================
 
     [PunRPC]
     void DestroyAllSpectatorsRPC()
     {
-        GameObject[] spectators;
-
-        try
-        {
-            spectators = GameObject.FindGameObjectsWithTag("Spectator");
-        }
-        catch
-        {
-            return; // если тег не найден — просто выходим
-        }
+        var spectators = GameObject.FindGameObjectsWithTag("Spectator");
 
         foreach (var s in spectators)
-        {
             if (s != null)
                 Destroy(s);
-        }
-    }
-
-    [PunRPC]
-    void SpawnPlayersRPC()
-    {
-        var networkManager = FindFirstObjectByType<NetworkManager>();
-        if (networkManager != null)
-        {
-            networkManager.SpawnPlayer();
-        }
-    }
-
-    [PunRPC]
-    void ResetUIRPC()
-    {
-        gameStarted = false;
-        if (winText != null) winText.SetActive(false);
-        if (drawText != null) drawText.SetActive(false);
-    }
-
-    [PunRPC]
-    void ShowWinnerRPC(int winnerID, int loserID)
-    {
-        PhotonView winnerPV = PhotonView.Find(winnerID);
-
-        if (winnerPV != null)
-        {
-            if (winnerPV.IsMine)
-            {
-                if (winText != null)
-                {
-                    winText.SetActive(true);
-                    winText.GetComponent<TextMeshProUGUI>().text = "YOU WIN";
-                }
-            }
-            else
-            {
-                if (drawText != null)
-                    drawText.SetActive(true);
-            }
-        }
-    }
-
-    [PunRPC]
-    void StartCountdownRPC()
-    {
-        if (currentState != GameState.Waiting) return;
-
-        currentState = GameState.Starting;
-        StartCoroutine(StartCountdown());
     }
 
     [PunRPC]
@@ -278,19 +235,8 @@ public class GameManager : MonoBehaviourPunCallbacks
             PhotonView pv = b.GetComponent<PhotonView>();
 
             if (pv != null && pv.IsMine)
-            {
                 PhotonNetwork.Destroy(b.gameObject);
-            }
         }
-    }
-
-    [PunRPC]
-    void ShowDrawRPC()
-    {
-        if (drawText != null)
-            drawText.SetActive(true);
-
-        if (winText != null) winText.SetActive(false);
     }
 
     [PunRPC]
@@ -305,18 +251,14 @@ public class GameManager : MonoBehaviourPunCallbacks
             PhotonView pv = t.GetComponent<PhotonView>();
 
             if (pv != null && pv.IsMine)
-            {
                 PhotonNetwork.Destroy(t);
-            }
         }
     }
 
     [PunRPC]
-    void ClearTrailsRPC()
+    void SpawnPlayersRPC()
     {
-        var trails = FindObjectsByType<TrailBuilder>(FindObjectsSortMode.None);
-        foreach (var t in trails)
-            if (t.photonView.IsMine)
-                t.ClearMyTrails();
+        var networkManager = FindFirstObjectByType<NetworkManager>();
+        networkManager?.SpawnPlayer();
     }
 }

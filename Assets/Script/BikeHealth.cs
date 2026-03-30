@@ -20,7 +20,9 @@ public class BikeHealth : MonoBehaviourPun
 
     void Die()
     {
-        if (!photonView.IsMine) return;
+        if (isDead) return;
+
+        isDead = true;
 
         photonView.RPC("DieRPC", RpcTarget.All);
     }
@@ -28,21 +30,28 @@ public class BikeHealth : MonoBehaviourPun
     [PunRPC]
     void DieRPC()
     {
-        if (photonView.IsMine)
+        isDead = true;
+
+        // ❗ отключаем управление
+        GetComponent<BikeController>().enabled = false;
+
+        // ❗ НЕ отключаем collider (иначе падает!)
+        // GetComponent<Collider>().enabled = false;
+
+        // скрываем модель
+        transform.GetChild(0).gameObject.SetActive(false);
+
+        // 🔥 сообщаем GameManager
+        if (PhotonNetwork.IsMasterClient)
         {
-            Debug.Log("YOU LOSE");
-
-            GameManager.Instance.ShowLoseScreen();
-
-            // ❗ ВАЖНО: НЕ удаляем объект сразу
-            GetComponent<BikeController>().enabled = false;
-            GetComponent<Collider>().enabled = false;
-
-            // можно спрятать модель
-            transform.GetChild(0).gameObject.SetActive(false);
-            isDead = true;
+            GameManager.Instance.OnPlayerDied(this);
         }
 
-        GameManager.Instance.OnPlayerDied(this);
+        // 🔥 локально становимся spectator
+        if (photonView.IsMine)
+        {
+            GameManager.Instance.SpawnSpectator(transform.position);
+            GetComponentInChildren<Camera>().gameObject.SetActive(false);
+        }
     }
 }
